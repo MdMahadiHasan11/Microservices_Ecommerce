@@ -1,0 +1,23 @@
+# docker-compose.yml
+
+services:
+  auth-service:
+    build: ./services/auth
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./services/auth/.env
+
+  product-service:
+    build: ./services/product
+    ports:
+      - "4001:4001"
+    env_file:
+      - ./services/product/.env
+
+  inventory-service:
+    build: ./services/inventory
+    ports:
+      - "4002:4002"
+    env_file:
+      - ./services/inventory/.env
