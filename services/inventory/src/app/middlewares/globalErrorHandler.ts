@@ -1,108 +1,93 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
-import { envVars } from "../../config/env";
-import AppError from "../errorHelpers/AppError";
-import { ZodError } from "zod";
-import {
-  ErrorHandler,
-  ErrorResponse,
-} from "../errorHelpers/errorFunctionInterface";
-import { handleDuplicateKeyError } from "../errorHelpers/errorFunction/handleDuplicateKeyError";
-import { handleCastError } from "../errorHelpers/errorFunction/handleCastError";
-import { handleValidationError } from "../errorHelpers/errorFunction/handleValidationError";
-import { handleZodError } from "../errorHelpers/errorFunction/handleZodError";
+import { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status";
+import config from "../../config";
+import { Prisma } from "@prisma/client";
 
-// Handler for custom AppError
-const handleAppError: ErrorHandler = (err: AppError) => {
-  const statusCode = err.statusCode;
-  const message = err.message;
-
-  // console.log("App Error:", message);
-  return {
-    statusCode,
-    message,
-    errors: { general: message },
-  };
+const sanitizeError = (error: any) => {
+  // Don't expose Prisma errors in production
+  if (process.env.NODE_ENV === "production" && error.code?.startsWith("P")) {
+    return {
+      message: "Database operation failed",
+      errorDetails: null,
+    };
+  }
+  return error;
 };
 
-// Handler for generic Error
-const handleGenericError: ErrorHandler = (err: Error) => {
-  const statusCode = 400;
-  const message = err.message;
-
-  // console.log("Generic Error:", message);
-  return {
-    statusCode,
-    message,
-    errors: { general: message },
-  };
-};
-
-// Default error handler
-const handleDefaultError: ErrorHandler = () => {
-  const statusCode = 500;
-  const message = "Something went wrong!";
-
-  // console.log("Default Error:", message);
-  return {
-    statusCode,
-    message,
-    errors: { general: message },
-  };
-};
-
-// Main global error handler
-export const globalErrorHandler: ErrorRequestHandler = async (
+const globalErrorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  if (envVars.NODE_ENV === "development") {
-    console.log("Global Error Handler");
-    console.log(err);
+  let statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+  let success = false;
+  let message = err.message || "Something went wrong!";
+  let error: any = err;
+
+  // Handle Prisma specific errors
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    switch (err.code) {
+      case "P2002":
+        message = "Duplicate entry. Record already exists.";
+        error = err.meta;
+        statusCode = httpStatus.CONFLICT;
+        break;
+
+      case "P2003":
+        message = "Foreign key constraint failed.";
+        error = err.meta;
+        statusCode = httpStatus.BAD_REQUEST;
+        break;
+
+      case "P2025": // ← Record not found (most important for your login case)
+        message = "No record found";
+        error = {
+          cause: err.meta?.cause || "The requested record does not exist",
+        };
+        statusCode = httpStatus.NOT_FOUND;
+        break;
+
+      case "P1000":
+        message = "Database authentication failed";
+        error = err.meta;
+        statusCode = httpStatus.BAD_GATEWAY;
+        break;
+
+      default:
+        message = "Database operation failed";
+        error = { code: err.code, meta: err.meta };
+    }
+  } else if (err instanceof Prisma.PrismaClientValidationError) {
+    message = "Invalid query / validation error";
+    error = err.message;
+    statusCode = httpStatus.BAD_REQUEST;
+  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+    message = "Unknown database error occurred";
+    error = err.message;
+    statusCode = httpStatus.INTERNAL_SERVER_ERROR;
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
+    message = "Database client failed to initialize";
+    error = err.message;
+    statusCode = httpStatus.INTERNAL_SERVER_ERROR;
   }
 
-  let errorResponse: ReturnType<ErrorHandler>;
+  // Optional: log the error somewhere (console, file, sentry, etc.)
+  console.error("[ERROR]", {
+    statusCode,
+    message,
+    path: req.originalUrl,
+    method: req.method,
+    error: err,
+  });
+  // Sanitize error before sending response
+  const sanitizedError = sanitizeError(error);
 
-  // Determine which error handler to use
-  switch (true) {
-    case err.code === 11000:
-      errorResponse = handleDuplicateKeyError(err);
-      break;
-    case err.name === "CastError":
-      errorResponse = handleCastError(err);
-      break;
-    case err.name === "ValidationError":
-      errorResponse = handleValidationError(err);
-      break;
-    case err instanceof ZodError:
-      errorResponse = handleZodError(err);
-      break;
-    case err instanceof AppError:
-      errorResponse = handleAppError(err);
-      break;
-    case err instanceof Error:
-      errorResponse = handleGenericError(err);
-      break;
-    default:
-      errorResponse = handleDefaultError(err);
-      break;
-  }
-
-  // Construct response
-  const response: ErrorResponse = {
-    success: false,
-    message: errorResponse.message,
-    errors:
-      Object.keys(errorResponse.errors).length > 0
-        ? errorResponse.errors
-        : undefined,
-    error: envVars.NODE_ENV === "development" ? err : undefined,
-    stack: envVars.NODE_ENV === "development" ? err.stack : null,
-  };
-
-  res.status(errorResponse.statusCode).json(response);
-  next();
+  res.status(statusCode).json({
+    success,
+    message,
+    error: sanitizedError,
+  });
 };
+
+export default globalErrorHandler;

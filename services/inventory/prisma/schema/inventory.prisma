@@ -1,0 +1,28 @@
+
+model Inventory {
+    id        String    @id @default(uuid())
+    sku       String    @unique
+    productId String    @unique
+    quantity  Int
+    createAt  DateTime  @default(now())
+    updateAt  DateTime  @updatedAt
+    histories History[]
+
+    @@map("inventory")
+}
+
+enum ActionType{
+    IN
+    OUT
+}
+
+model History {
+    id            String     @id @default(uuid())
+    actionType    ActionType
+    quantityChanged Int
+    lastQuantity  Int
+    newQuantity   Int
+    inventory     Inventory  @relation(fields: [inventoryId], references: [id])
+    inventoryId   String
+    @@map("history")
+}

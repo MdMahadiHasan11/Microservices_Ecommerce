@@ -1,23 +1,33 @@
-# docker-compose.yml
-
 services:
-  auth-service:
-    build: ./services/auth
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    restart: on-failure
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
-      - "4000:4000"
-    env_file:
-      - ./services/auth/.env
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
 
-  product-service:
-    build: ./services/product
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: on-failure
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "4001:4001"
-    env_file:
-      - ./services/product/.env
+      - "5050:80"
+      - "5051:443"
 
-  inventory-service:
-    build: ./services/inventory
-    ports:
-      - "4002:4002"
-    env_file:
-      - ./services/inventory/.env
+# 👇 ADD THIS PART
+volumes:
+  postgres:

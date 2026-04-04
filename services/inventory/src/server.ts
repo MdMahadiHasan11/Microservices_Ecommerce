@@ -1,70 +1,76 @@
-/* eslint-disable no-console */
-
-import { Server as HttpServer } from "http";
+import { Server } from "http";
 import app from "./app";
-import "dotenv/config";
-import { connectDB } from "./config/db";
-import { envVars } from "./config/env";
+import seedSuperAdmin from "./app/helper/seed";
+import config from "./config";
+let server: Server | undefined;
 
-// const port = envVars.PORT;
-const port = envVars.PORT || 4002;
-let server: HttpServer;
+const port = process.env.PORT || config.port || 5000;
 
-async function startServer() {
-  await connectDB();
-  server = app.listen(port, () => {
-    console.log(`🚀 Inventory Server started at http://localhost:${port}`);
-  });
+
+async function bootstrap() {
+  try {
+    console.log("🚀 Starting application...");
+
+    // await connectRedis();
+    // await connectDB();
+    console.log("🌱 Seeding super admin...");
+    await seedSuperAdmin();
+
+    // ৩. start server
+    server = app.listen(port, () => {
+      console.log(`✅ Server running → http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to start application:", err);
+    process.exit(1);
+  }
 }
 
-(async () => {
-  await startServer();
-})();
+// Graceful shutdown logic
+const gracefulShutdown = (signal: string) => async () => {
+  console.log(`\n${signal} received → Initiating graceful shutdown...`);
 
-process.on("unhandledRejection", (error) => {
-  console.log("Unhandled Rejection at: Promise . Shutting down", error);
+  const shutdownTimeout = setTimeout(() => {
+    console.error("Graceful shutdown timed out → Force exiting");
+    process.exit(1);
+  }, 10000);
 
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
+  try {
+    if (server) {
+      console.log("Stopping HTTP server (no new connections)...");
+      await new Promise<void>((resolve) => {
+        server!.close(() => {
+          console.log("HTTP server closed successfully.");
+          resolve();
+        });
+      });
+    }
+    // await closeDB();
+    // await closeRedis();
+
+    console.log("All resources cleaned up ✓");
+    clearTimeout(shutdownTimeout);
+    process.exit(0);
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    clearTimeout(shutdownTimeout);
+    process.exit(1);
   }
-  process.exit(1);
+};
+
+// Signals handlers
+process.on("SIGTERM", gracefulShutdown("SIGTERM"));
+process.on("SIGINT", gracefulShutdown("SIGINT")); // Ctrl+C
+
+// Global error handlers (safety net)
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  gracefulShutdown("unhandledRejection")();
 });
 
-// Promise.reject(new Error("Unhandled Rejection at: Promise . Shutting down"));
-
-process.on("uncaughtException", (error) => {
-  console.log("UnCaught Exception at: Promise . Shutting down", error);
-
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
-  }
-  process.exit(1);
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  gracefulShutdown("uncaughtException")();
 });
 
-// throw new Error("UnCaught Rejection at: Promise . Shutting down");
-
-process.on("SIGTERM", () => {
-  console.log("👋 SIGTERM RECEIVED. Shutting down gracefully");
-  if (server) {
-    server.close(() => {
-      console.log("💥 Process terminated!");
-      process.exit(1);
-    });
-  }
-  process.exit(1);
-});
-
-process.on("SIGINT", () => {
-  console.log("👋 SIGINT RECEIVED. Shutting down gracefully");
-  if (server) {
-    server.close(() => {
-      console.log("💥 Process terminated!");
-      process.exit(1);
-    });
-  }
-  process.exit(1);
-});
+bootstrap();

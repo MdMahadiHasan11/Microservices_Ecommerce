@@ -1,0 +1,375 @@
+// generator client {
+//   provider = "prisma-client"
+//   // output   = "../../src/generated/prisma"
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//
+//enum
+enum UserRole {
+  SUPER_ADMIN
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DELETED
+  BLOCKED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  INPROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  B_POSITIVE
+  O_POSITIVE
+  AB_POSITIVE
+  A_NEGATIVE
+  B_NEGATIVE
+  O_NEGATIVE
+  AB_NEGATIVE
+}
+
+enum MaritalStatus {
+  MARRIED
+  UNMARRIED
+}
+enum Provider {
+  google
+  credentials
+}
+
+//enum end 
+
+//
+//
+//user
+model User {
+  id                 String         @id @default(uuid())
+  email              String         @unique
+  password           String? 
+  role               UserRole       @default(PATIENT)
+  needPasswordChange Boolean        @default(true)
+  status             UserStatus     @default(ACTIVE)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  admin              Admin?
+  doctor             Doctor?
+  patient            Patient?
+  notifications      Notification[]
+  authProviders      AuthProvider[]
+
+  @@map("users")
+}
+
+model AuthProvider {
+  id     String @id @default(uuid())
+  email String
+  user   User   @relation(fields: [email], references: [email], onDelete: Cascade)
+
+  provider   Provider
+  providerId String?
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, providerId])
+  @@unique([email, provider])
+  @@map("auth_providers")
+}
+
+model Admin {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  contactNumber String
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email])
+
+  @@map("admins")
+}
+
+model Doctor {
+  id                  String              @id @default(uuid())
+  name                String
+  email               String              @unique
+  profilePhoto        String?
+  contactNumber       String
+  address             String?
+  registrationNumber  String
+  experience          Int                 @default(0)
+  gender              Gender
+  appointmentFee      Int
+  qualification       String
+  currentWorkingPlace String
+  designation         String
+  isDeleted           Boolean             @default(false)
+  averageRating       Float               @default(0.0)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  user                User                @relation(fields: [email], references: [email])
+  doctorSpecialties   DoctorSpecialties[]
+  doctorSchedules     DoctorSchedules[]
+  appointment         Appointment[]
+  prescription        Prescription[]
+  review              Review[]
+
+  @@map("doctors")
+}
+
+model Patient {
+  id            String   @id @unique @default(uuid())
+  email         String   @unique
+  name          String
+  profilePhoto  String?
+  contactNumber String?
+  address       String?
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user              User               @relation(references: [email], fields: [email])
+  patientHealthData PatientHealthData?
+  medicalReport     MedicalReport[]
+  appointment       Appointment[]
+  prescription      Prescription[]
+  review            Review[]
+
+  @@map("patients")
+}
+
+//
+//
+//user end
+
+//
+//
+//schedule
+model Schedule {
+  id              String            @id @default(uuid())
+  startDateTime   DateTime
+  endDateTime     DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  doctorSchedules DoctorSchedules[]
+  appointments    Appointment[]
+
+  @@map("schedules")
+}
+
+model DoctorSchedules {
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+
+  isBooked Boolean @default(false)
+
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([doctorId, scheduleId])
+  @@map("doctor_schedules")
+}
+
+//schedule end
+
+//
+//
+// specialty.prisma
+model Specialties {
+  id                String              @id @default(uuid())
+  title             String
+  icon              String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  doctorSpecialties DoctorSpecialties[]
+
+  @@map("specialties")
+}
+
+model DoctorSpecialties {
+  specialitiesId String
+  specialities   Specialties @relation(fields: [specialitiesId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([specialitiesId, doctorId])
+  @@map("doctor_specialties")
+}
+
+//
+//
+//specialty end
+
+//
+//
+//Appointment
+model Appointment {
+  id        String  @id @default(uuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+
+  videoCallingId  String
+  status          AppointmentStatus @default(SCHEDULED)
+  paymentStatus   PaymentStatus     @default(UNPAID)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  doctorSchedules DoctorSchedules?
+  payment         Payment?
+  prescription    Prescription?
+  review          Review?
+
+  @@map("appointments")
+}
+
+model Payment {
+  id            String      @id @default(uuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  amount        Float
+  transactionId String @unique
+
+  gateway PaymentGateway?
+
+  status PaymentStatus @default(UNPAID)
+
+  externalId String? @unique // val_id / stripe payment_intent / ...
+  reference  String?
+
+  gatewayData Json?
+
+  stripeEventId String? @unique // only for Stripe webhook idempotency
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Prescription {
+  id            String      @id @default(uuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  instructions String
+  followUpDate DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("prescriptions")
+}
+
+model Review {
+  id        String  @id @default(uuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  rating    Float
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reviews")
+}
+
+//
+//
+//Appointment end
+
+//
+
+//
+
+//patient data
+model PatientHealthData {
+  id                  String        @id @default(uuid())
+  patientId           String        @unique
+  patient             Patient       @relation(fields: [patientId], references: [id])
+  gender              Gender
+  dateOfBirth         String
+  bloodGroup          BloodGroup
+  hasAllergies        Boolean?      @default(false)
+  hasDiabetes         Boolean?      @default(false)
+  height              String
+  weight              String
+  smokingStatus       Boolean?      @default(false)
+  dietaryPreferences  String?
+  pregnancyStatus     Boolean?      @default(false)
+  mentalHealthHistory String?
+  immunizationStatus  String?
+  hasPastSurgeries    Boolean?      @default(false)
+  recentAnxiety       Boolean?      @default(false)
+  recentDepression    Boolean?      @default(false)
+  maritalStatus       MaritalStatus @default(UNMARRIED)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@map("patient_health_datas")
+}
+
+model MedicalReport {
+  id         String   @id @default(uuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  reportName String
+  reportLink String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("medical_reports")
+}
