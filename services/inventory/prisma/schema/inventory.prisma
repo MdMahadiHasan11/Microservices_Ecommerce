@@ -1,28 +1,31 @@
-
 model Inventory {
     id        String    @id @default(uuid())
     sku       String    @unique
     productId String    @unique
     quantity  Int
-    createAt  DateTime  @default(now())
-    updateAt  DateTime  @updatedAt
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
     histories History[]
 
     @@map("inventory")
 }
 
-enum ActionType{
+enum ActionType {
     IN
     OUT
 }
 
 model History {
-    id            String     @id @default(uuid())
-    actionType    ActionType
+    id              String     @id @default(uuid())
+    actionType      ActionType
     quantityChanged Int
-    lastQuantity  Int
-    newQuantity   Int
-    inventory     Inventory  @relation(fields: [inventoryId], references: [id])
-    inventoryId   String
+    lastQuantity    Int
+    newQuantity     Int
+    inventory       Inventory  @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+    inventoryId     String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
     @@map("history")
 }

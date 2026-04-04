@@ -15,6 +15,31 @@ const createInventory = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateInventory = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+
+  const result = await InventoryService.updateInventory(id, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Update inventory successfully",
+    data: result,
+  });
+});
+
+const getInventoryById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+
+  const result = await InventoryService.getInventoryById(id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Get inventory successfully",
+    data: result,
+  });
+});
 export const InventoryController = {
   createInventory,
+  updateInventory,
+  getInventoryById,
 };
