@@ -1,0 +1,8 @@
+enum PaymentGateway {
+  STRIPE
+  SSLCOMMERZ
+  BKASH
+  NAGAD
+  ROCKET
+  UPAY
+}

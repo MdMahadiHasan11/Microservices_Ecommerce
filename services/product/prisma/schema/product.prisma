@@ -1,0 +1,20 @@
+enum ProductStatus {
+    DRAFT
+    PUBLISHED
+    UNLISTED
+}
+
+model Product {
+    id          String        @id @default(uuid())
+    sku         String        @unique
+    name        String
+    description String?
+    price       Float         @default(0)
+    inventoryId String?
+    status      ProductStatus @default(DRAFT)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("product")
+}

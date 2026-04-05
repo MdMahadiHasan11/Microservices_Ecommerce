@@ -6,6 +6,7 @@ dotenv.config({ path: path.join(process.cwd(), ".env") });
 export default {
   env: process.env.NODE_ENV,
   port: process.env.PORT,
+  inventory_url: process.env.INVENTORY_SERVICES_URL || "http://localhost:4002",
 
   frontendUrl: process.env.FRONTEND_URL,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,

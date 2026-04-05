@@ -84,12 +84,29 @@ const getInventoryById = async (id: string) => {
     where: {
       id,
     },
+    select: {
+      id: true,
+      quantity: true,
+    },
+  });
+
+  if (!inventory) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Inventory not found");
+  }
+
+  return inventory;
+};
+const getInventoryDetailsById = async (id: string) => {
+  const inventory = await prisma.inventory.findUnique({
+    where: {
+      id,
+    },
     include: {
       histories: {
         orderBy: {
           createdAt: "desc",
         },
-      }
+      },
     },
   });
 
@@ -104,4 +121,5 @@ export const InventoryService = {
   createInventory,
   updateInventory,
   getInventoryById,
+  getInventoryDetailsById,
 };

@@ -38,8 +38,23 @@ const getInventoryById = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const getInventoryDetailsById = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params as { id: string };
+
+    const result = await InventoryService.getInventoryDetailsById(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Get Inventory details successfully",
+      data: result,
+    });
+  },
+);
 export const InventoryController = {
   createInventory,
   updateInventory,
   getInventoryById,
+  getInventoryDetailsById,
 };
