@@ -23,6 +23,7 @@ export const createHandler = (
       // Clean & controlled headers (IMPORTANT)
       const headers: Record<string, any> = {
         "content-type": "application/json",
+        "x-gateway-secret": process.env.GATEWAY_SECRET,
       };
 
       if (req.headers.authorization) {

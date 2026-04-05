@@ -36,10 +36,20 @@ const createProduct = async (payload: ICreateProduct) => {
 
   try {
     // 3. Call Inventory Service
-    const response = await axios.post(`${config.inventory_url}/inventories`, {
-      productId: product.id,
-      sku: product.sku,
-    });
+    const response = await axios.post(
+      `${config.inventory_url}/inventories`,
+      {
+        productId: product.id,
+        sku: product.sku,
+      },
+      {
+        headers: {
+          // "x-gateway-secret": process.env.GATEWAY_SECRET, // Gateway call
+          "x-service-secret": process.env.SERVICE_PRODUCT_SECRET, // optional, if Service→Service
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
     inventory = response.data.data;
 
@@ -99,10 +109,21 @@ const getProductById = async (id: string) => {
   }
 
   if (product.inventoryId == null) {
-    const response = await axios.post(`${config.inventory_url}/inventories`, {
-      productId: product.id,
-      sku: product.sku,
-    });
+    const response = await axios.post(
+      `${config.inventory_url}/inventories`,
+      {
+        productId: product.id,
+        sku: product.sku,
+      },
+
+      {
+        headers: {
+          // "x-gateway-secret": process.env.GATEWAY_SECRET, // Gateway call
+          "x-service-secret": process.env.SERVICE_PRODUCT_SECRET, // optional, if Service→Service
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
     const inventory = response.data.data;
 
@@ -131,6 +152,13 @@ const getProductById = async (id: string) => {
 
   const response = await axios.get(
     `${config.inventory_url}/inventories/${product.inventoryId}`,
+    {
+      headers: {
+        // "x-gateway-secret": process.env.GATEWAY_SECRET, // Gateway call
+        "x-service-secret": process.env.SERVICE_PRODUCT_SECRET, // optional, if Service→Service
+        "Content-Type": "application/json",
+      },
+    },
   );
 
   const inventory = response.data.data;
