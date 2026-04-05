@@ -8,9 +8,6 @@ CREATE TYPE "ActionType" AS ENUM ('IN', 'OUT');
 CREATE TYPE "NotificationType" AS ENUM ('APPOINTMENT_BOOKED', 'APPOINTMENT_REMINDER', 'APPOINTMENT_CANCELED', 'APPOINTMENT_RESCHEDULED', 'APPOINTMENT_STARTING_SOON', 'APPOINTMENT_COMPLETED', 'PRESCRIPTION_CREATED', 'PRESCRIPTION_UPDATED', 'REVIEW_REQUEST', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'ADMIN_BROADCAST', 'ACCOUNT_ALERT');
 
 -- CreateEnum
-CREATE TYPE "Status" AS ENUM ('DRAFT', 'PUBLISHED', 'UNLISTED');
-
--- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'PATIENT', 'DOCTOR', 'ADMIN');
 
 -- CreateEnum
@@ -74,21 +71,6 @@ CREATE TABLE "notifications" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "product" (
-    "id" TEXT NOT NULL,
-    "sku" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "price" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "inventoryId" TEXT,
-    "status" "Status" NOT NULL DEFAULT 'DRAFT',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "product_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -322,9 +304,6 @@ CREATE INDEX "notifications_userId_createdAt_idx" ON "notifications"("userId", "
 
 -- CreateIndex
 CREATE INDEX "notifications_userId_isRead_idx" ON "notifications"("userId", "isRead");
-
--- CreateIndex
-CREATE UNIQUE INDEX "product_sku_key" ON "product"("sku");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");

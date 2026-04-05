@@ -8,6 +8,9 @@ CREATE TYPE "ActionType" AS ENUM ('IN', 'OUT');
 CREATE TYPE "NotificationType" AS ENUM ('APPOINTMENT_BOOKED', 'APPOINTMENT_REMINDER', 'APPOINTMENT_CANCELED', 'APPOINTMENT_RESCHEDULED', 'APPOINTMENT_STARTING_SOON', 'APPOINTMENT_COMPLETED', 'PRESCRIPTION_CREATED', 'PRESCRIPTION_UPDATED', 'REVIEW_REQUEST', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'ADMIN_BROADCAST', 'ACCOUNT_ALERT');
 
 -- CreateEnum
+CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'UNLISTED');
+
+-- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'PATIENT', 'DOCTOR', 'ADMIN');
 
 -- CreateEnum
@@ -37,8 +40,8 @@ CREATE TABLE "inventory" (
     "sku" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
-    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updateAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "inventory_pkey" PRIMARY KEY ("id")
 );
@@ -51,6 +54,8 @@ CREATE TABLE "history" (
     "lastQuantity" INTEGER NOT NULL,
     "newQuantity" INTEGER NOT NULL,
     "inventoryId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "history_pkey" PRIMARY KEY ("id")
 );
@@ -69,6 +74,21 @@ CREATE TABLE "notifications" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "product" (
+    "id" TEXT NOT NULL,
+    "sku" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "price" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "inventoryId" TEXT,
+    "status" "ProductStatus" NOT NULL DEFAULT 'DRAFT',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "product_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -304,6 +324,9 @@ CREATE INDEX "notifications_userId_createdAt_idx" ON "notifications"("userId", "
 CREATE INDEX "notifications_userId_isRead_idx" ON "notifications"("userId", "isRead");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "product_sku_key" ON "product"("sku");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
@@ -349,7 +372,7 @@ CREATE UNIQUE INDEX "reviews_appointmentId_key" ON "reviews"("appointmentId");
 CREATE UNIQUE INDEX "patient_health_datas_patientId_key" ON "patient_health_datas"("patientId");
 
 -- AddForeignKey
-ALTER TABLE "history" ADD CONSTRAINT "history_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "history" ADD CONSTRAINT "history_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "inventory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
