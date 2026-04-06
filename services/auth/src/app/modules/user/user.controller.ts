@@ -14,21 +14,8 @@ const createUser= catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getUserById= catchAsync(async (req: Request, res: Response) => {
-
-  const { id } = req.params as { id: string };
-  const filters = pick(req.query, ['field']);
-  const result = await userService.getUserById(id, filters);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "User get successfuly!",
-    data: result,
-  });
-});
 
 
 export const userController = {
   createUser,
-  getUserById
 };

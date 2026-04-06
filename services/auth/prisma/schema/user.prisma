@@ -1,17 +1,85 @@
-model User {
-    id         String @id @default(uuid())
-    authUserId String @unique
-    email      String @unique
+enum Role {
+    USER
+    ADMIN
+}
 
-    name    String?
-    address String?
-    phone   String?
+enum AccountStatus {
+    PENDING
+    ACTIVE
+    INACTIVE
+    SUSPEND
+}
+
+model User {
+    id    String @id @default(uuid())
+    email String @unique
+    name  String
+
+    password String
+    role     Role          @default(USER)
+    verified Boolean       @default(false)
+    status   AccountStatus @default(PENDING)
+
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    loginHistories   LoginHistory[]
+    verificationCode VerificationCode[]
+
+    @@map("users")
+}
+
+enum LoginAttempt {
+    SUCCESS
+    FAILED
+}
+
+model LoginHistory {
+    id        String  @id @default(uuid())
+    userId    String
+    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    ipAddress String?
+    userAgent String?
+
+    attempt LoginAttempt @default(SUCCESS)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@map("users")
-    @@index([authUserId])
+    @@map("loginHistory")
+}
+
+enum VerificationStatus {
+    PENDING
+    USED
+    EXPIRED
+}
+
+enum VerificationCodeType {
+    ACCOUNT_ACTIVATION
+    PASSWORD_RESET
+    EMAIL_CHANGE
+    PHONE_CHANGE
+    TWO_FACTORAUTH
+    TWO_FACTORDISABLe
+}
+
+model VerificationCode {
+    id     String @id @default(uuid())
+    userId String
+
+    user   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+    status VerificationStatus   @default(PENDING)
+    code   String
+    type   VerificationCodeType @default(ACCOUNT_ACTIVATION)
+
+    issuedAt  DateTime @default(now())
+    expiredAt DateTime
+    verifiedt DateTime
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("verificationCode")
 }
 
 // model Admin {
