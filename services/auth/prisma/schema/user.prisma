@@ -72,9 +72,9 @@ model VerificationCode {
     code   String
     type   VerificationCodeType @default(ACCOUNT_ACTIVATION)
 
-    issuedAt  DateTime @default(now())
-    expiredAt DateTime
-    verifiedt DateTime
+    issuedAt   DateTime @default(now())
+    expiredAt  DateTime
+    verifiedAt DateTime?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

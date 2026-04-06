@@ -1,0 +1,13 @@
+model Email {
+    id        String @id @default(uuid())
+    sender    String
+    recipient String
+    subject   String
+    body      String
+    source    String
+
+    sentAt    DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("email")
+}

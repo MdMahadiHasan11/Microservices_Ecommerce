@@ -1,5 +1,8 @@
-export type createPatientInput = {
-  name: string;
-  email: string;
-  password: string;
+import { LoginAttempt } from "@prisma/client";
+
+export type LoginHistory = {
+  userId: string;
+  userAgent: string | undefined;
+  ipAddress: string | undefined;
+  attempt: LoginAttempt;
 };

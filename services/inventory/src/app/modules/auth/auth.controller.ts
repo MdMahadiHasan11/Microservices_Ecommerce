@@ -1,13 +1,13 @@
+import { User } from "@prisma/client";
 import { Request, Response } from "express";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import { AuthServices } from "./auth.service";
 import httpStatus from "http-status";
+import { Secret } from "jsonwebtoken";
 import config from "../../../config";
 import ApiError from "../../errors/ApiError";
 import { jwtHelpers } from "../../helper/jwtHelper";
-import { Secret } from "jsonwebtoken";
-import { User } from "@prisma/client";
+import catchAsync from "../../shared/catchAsync";
+import sendResponse from "../../shared/sendResponse";
+import { AuthServices } from "./auth.service";
 
 const convertExpiresInToMilliseconds = (expiresIn: string): number => {
   const unit = expiresIn.slice(-1);
@@ -81,6 +81,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     refreshTokenMaxAge = 1000 * 60 * 60 * 24 * 30; // default 30 days
   }
   const result = await AuthServices.loginUser(req.body);
+
   const { refreshToken, accessToken } = result;
   res.cookie("accessToken", accessToken, {
     secure: true,

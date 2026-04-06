@@ -28,6 +28,17 @@ services:
       - "5050:80"
       - "5051:443"
 
-# 👇 ADD THIS PART
+  # ✅ FIX: moved inside services
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - mailhog:/var/lib/mailhog
+
+# ✅ volumes must be top-level (this is correct)
 volumes:
   postgres:
+  mailhog:
