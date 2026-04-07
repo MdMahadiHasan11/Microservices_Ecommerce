@@ -17,3 +17,5 @@ docker compose down
 docker compose down -v
 
 host.docker.internal
+
+docker container rm redis-stack

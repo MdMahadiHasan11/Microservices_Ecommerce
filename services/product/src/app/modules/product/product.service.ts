@@ -173,8 +173,43 @@ const getProductById = async (id: string) => {
   return data;
 };
 
+const updateProductById = async (
+  id: string,
+  payload: Partial<ICreateProduct>,
+) => {
+  if (!id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "ID is required");
+  }
+
+  if (!payload) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Payload is required");
+  }
+
+  if (payload.sku) {
+    const existingProduct = await prisma.product.findUnique({
+      where: {
+        sku: payload.sku,
+      },
+    });
+    if (existingProduct) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Product with same SKU already exists",
+      );
+    }
+  }
+  const product = await prisma.product.update({
+    where: {
+      id,
+    },
+    data: payload,
+  });
+  return product;
+};
+
 export const ProductService = {
   getProduct,
   createProduct,
   getProductById,
+  updateProductById,
 };

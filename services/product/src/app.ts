@@ -3,7 +3,6 @@ import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import cron from "node-cron";
 import passport from "passport";
-import verifyCaller from "./app/middlewares/gatewayMiddleWare";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
 import { AppointmentService } from "./app/modules/appointment/appointment.service";
@@ -59,7 +58,8 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.use("/api/v1", verifyCaller, router);
+//  verifyCaller,
+app.use("/api/v1", router);
 app.use(globalErrorHandler);
 app.use(notFound);
 

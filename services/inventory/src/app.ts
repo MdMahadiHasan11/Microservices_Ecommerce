@@ -5,7 +5,6 @@ import cron from "node-cron";
 import passport from "passport";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
-import verifyCaller from "./app/middlewares/serviceMiddleware";
 import { AppointmentService } from "./app/modules/appointment/appointment.service";
 import { PaymentController } from "./app/modules/payment/payment.controller";
 import router from "./app/routes";
@@ -59,7 +58,8 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.use("/api/v1", verifyCaller, router);
+app.use("/api/v1", router);
+// app.use("/api/v1", verifyCaller, router);
 app.use(globalErrorHandler);
 app.use(notFound);
 

@@ -11,7 +11,12 @@ export const createProductSchema = z.object({
 });
 
 export type ICreateProduct = z.infer<typeof createProductSchema>;
+
+export const ProductUpdateSchema = createProductSchema.omit({
+  sku: true,
+});
 // Export validation
 export const ProductValidation = {
   createProductSchema,
+  ProductUpdateSchema,
 };
