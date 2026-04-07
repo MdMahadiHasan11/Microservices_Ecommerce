@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { IRouter, NextFunction, Request, Response } from "express";
+import middlewares from "../app/middlewares/auth";
 
 type HttpMethod = "get" | "post" | "put" | "delete" | "patch";
 
@@ -22,6 +23,14 @@ export const createHandler = (
 
       // Clean & controlled headers (IMPORTANT)
       const headers: Record<string, any> = {
+        origin: req.headers.origin,
+        "x-user-id": req.headers["x-user-id"] || "",
+        "x-user-email": req.headers["x-user-email"] || "",
+        "x-user-name": req.headers["x-user-name"] || "",
+        "x-user-role": req.headers["x-user-role"] || "",
+        "user-agent": req.headers["user-agent"] || "",
+        
+
         "content-type": "application/json",
         "x-gateway-secret": process.env.GATEWAY_SECRET,
       };
@@ -60,6 +69,11 @@ export const createHandler = (
   };
 };
 
+export const getMiddlewares = (names: string[]) => {
+  console.log(names); //[ 'auth' ]
+  return names.map((name) => middlewares[name as keyof typeof middlewares]);
+};
+
 export const configureRoutes = (router: IRouter, config: any) => {
   console.log("🚀 Starting API Gateway Route Configuration...");
 
@@ -80,7 +94,12 @@ export const configureRoutes = (router: IRouter, config: any) => {
 
           const handler = createHandler(hostName, route.path, method);
 
-          (router as any)[method](route.path, handler);
+          const middleware = getMiddlewares(route.middlewares);
+
+          router[method](route.path, ...middleware, handler);
+
+          // (router as any)[method](route.path, ...middleware, handler);
+          // (router as any)[method](route.path, handler);
 
           console.log(
             `✅ ${method.toUpperCase()} ${route.path} → ${serviceName}`,

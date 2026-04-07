@@ -1,31 +1,78 @@
-import { NextFunction, Request, Response } from "express"
-import {  jwtHelpers } from "../helper/jwtHelper";
-import ApiError from "../errors/ApiError";
-import httpStatus from "http-status"
+import axios from "axios";
+import { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status";
 import config from "../../config";
-import { Secret } from "jsonwebtoken";
+import ApiError from "../errors/ApiError";
 
-const auth = (...roles: string[]) => {
-   return async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
-        try {
-            const token = req.headers.authorization || req.cookies.accessToken;
-            if (!token) {
-                throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!")
-            }
+// const auth2 = (...roles: string[]) => {
+//   return async (
+//     req: Request & { user?: any },
+//     res: Response,
+//     next: NextFunction,
+//   ) => {
+//     try {
+//       const token = req.headers.authorization || req.cookies.accessToken;
+//       if (!token) {
+//         throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!");
+//       }
 
-            const verifiedUser = jwtHelpers.verifyToken(token, config.jwt.jwt_secret as Secret)
+//       const verifiedUser = jwtHelpers.verifyToken(
+//         token,
+//         config.jwt.jwt_secret as Secret,
+//       );
 
-            req.user = verifiedUser;
+//       req.user = verifiedUser;
 
-            if (roles.length && !roles.includes(verifiedUser.role)) {
-                throw new ApiError(httpStatus.FORBIDDEN, "Forbidden!")
-            }
-            next()
-        }
-        catch (err) {
-            next(err)
-        }
-    }
-}
+//       if (roles.length && !roles.includes(verifiedUser.role)) {
+//         throw new ApiError(httpStatus.FORBIDDEN, "Forbidden!");
+//       }
+//       next();
+//     } catch (err) {
+//       next(err);
+//     }
+//   };
+// };
 
-export default auth;
+// export default auth2;
+
+const auth = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.headers["authorization"]) {
+    return next(
+      new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!"),
+    );
+
+    // return res.status(401).json({
+    //   success: false,
+    //   message: "You are not authorized!",
+    // });
+  }
+
+  try {
+    const token = req.headers["authorization"]?.split(" ")[1];
+    const response = await axios.post(
+      `${config.auth_service_url}/verify-token`,
+      {
+        accessToken: token,
+
+        headers: {
+          ip: req.ip,
+          "user-agent": req.headers["user-agent"],
+        },
+      },
+    );
+    const data = response.data.data;
+
+    req.headers["x-user-id"] = data.id;
+    req.headers["x-user-email"] = data.email;
+    req.headers["x-user-name"] = data.name;
+    req.headers["x-user-role"] = data.role;
+    next();
+  } catch (error) {
+    return next(
+      new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!"),
+    );
+  }
+};
+
+const middlewares = { auth };
+export default middlewares;

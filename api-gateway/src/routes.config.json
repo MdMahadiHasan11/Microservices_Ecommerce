@@ -5,11 +5,18 @@
       "routes": [
         {
           "path": "/api/v1/products",
-          "methods": ["get", "post"]
+          "methods": ["post"],
+          "middlewares": ["auth"]
+        },
+        {
+          "path": "/api/v1/products",
+          "methods": ["get"],
+          "middlewares": []
         },
         {
           "path": "/api/v1/products/:id",
-          "methods": ["get"]
+          "methods": ["get"],
+          "middlewares": []
         }
       ]
     },
@@ -18,15 +25,54 @@
       "routes": [
         {
           "path": "/api/v1/inventories/:id",
-          "methods": ["put"]
+          "methods": ["put"],
+          "middlewares": ["auth"]
         },
         {
           "path": "/api/v1/inventories/:id",
-          "methods": ["get"]
+          "methods": ["get"],
+          "middlewares": ["auth"]
         },
         {
           "path": "/api/v1/inventories/:id/details",
-          "methods": ["get"]
+          "methods": ["get"],
+          "middlewares": ["auth"]
+        }
+      ]
+    },
+    "auth": {
+      "url": "http://localhost:4003",
+      "routes": [
+        {
+          "path": "/api/v1/auth/registration",
+          "methods": ["post"],
+          "middlewares": []
+        },
+        {
+          "path": "/api/v1/auth/login",
+          "methods": ["post"],
+          "middlewares": []
+        },
+
+        {
+          "path": "/api/v1/auth/verify-token",
+          "methods": ["post"],
+          "middlewares": []
+        },
+        {
+          "path": "/api/v1/auth/verify-email",
+          "methods": ["post"],
+          "middlewares": []
+        }
+      ]
+    },
+    "user": {
+      "url": "http://localhost:4004",
+      "routes": [
+        {
+          "path": "/api/v1/user/:id",
+          "methods": ["get"],
+          "middlewares": ["auth"]
         }
       ]
     }

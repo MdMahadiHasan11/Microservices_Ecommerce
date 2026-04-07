@@ -27,6 +27,7 @@ const verifyAccessToken = catchAsync(async (req: Request, res: Response) => {
 
   const result = await userService.verifyToken(accessToken);
 
+  console.log("Success");
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
