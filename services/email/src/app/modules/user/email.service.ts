@@ -5,8 +5,8 @@ import { defaultSender, transporter } from "../../utils/sendEmail";
 import { ICreateEmail } from "./email.validation";
 
 const sentEmail = async (req: Request) => {
+  
   const payload = req.body as ICreateEmail;
-
   const { sender, recipient, subject, body, source } = payload;
 
   const from = sender || defaultSender;

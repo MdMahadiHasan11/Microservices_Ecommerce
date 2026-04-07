@@ -109,6 +109,44 @@ const cleatToCart = async (req: Request) => {
     };
   }
 
+
+  //same as release cart start
+  try {
+    const data = await redis.hgetall(`cart:${cartSessionId}`);
+
+    if (Object.keys(data).length === 0) {
+      return;
+    }
+
+    const items = Object.keys(data).map((key) => {
+      const { quantity, inventoryId } = JSON.parse(data[key]) as {
+        quantity: number;
+        inventoryId: string;
+      };
+      return { productId: key, quantity, inventoryId };
+    });
+
+    // here one request all update  to do
+
+    const requests = items.map((item) => {
+      return axios.put(
+        `${config.inventory_service_url}/inventories/${item.inventoryId}`,
+        {
+          quantity: item.quantity,
+          actionType: "IN",
+        },
+      );
+    });
+
+    await Promise.all(requests);
+
+    console.log("Inventory updated");
+    await redis.del(`cart:${cartSessionId}`);
+  } catch (error) {
+    throw error;
+  }
+  //same as release cart end
+
   await redis.del(`cart:${cartSessionId}`);
   await redis.del(`session:${cartSessionId}`);
   delete req.headers["x-cart-session-id"];

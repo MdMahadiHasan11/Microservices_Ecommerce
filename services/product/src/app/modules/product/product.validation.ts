@@ -11,10 +11,9 @@ export const createProductSchema = z.object({
 });
 
 export type ICreateProduct = z.infer<typeof createProductSchema>;
-
-export const ProductUpdateSchema = createProductSchema.omit({
-  sku: true,
-});
+export const ProductUpdateSchema = createProductSchema
+  .omit({ sku: true })   // ❌ sku remove
+  .partial();            // ✅ সব field optional
 // Export validation
 export const ProductValidation = {
   createProductSchema,

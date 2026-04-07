@@ -35,22 +35,20 @@ import ApiError from "../errors/ApiError";
 
 // export default auth2;
 
-const auth = async (req: Request, res: Response, next: NextFunction) => {
+const auth = async (req: Request, _res: Response, next: NextFunction) => {
   if (!req.headers["authorization"]) {
     return next(
       new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!"),
     );
-
-    // return res.status(401).json({
-    //   success: false,
-    //   message: "You are not authorized!",
-    // });
   }
+  // const result = req.headers["authorization"];
+  // console.log(result);
 
   try {
     const token = req.headers["authorization"]?.split(" ")[1];
+
     const response = await axios.post(
-      `${config.auth_service_url}/verify-token`,
+      `${config.auth_service_url}/auth/verify-token`,
       {
         accessToken: token,
 

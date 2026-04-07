@@ -76,7 +76,11 @@ const checkout = async (payload: IOrder) => {
     },
   });
 
-  await axios.post(`${config.email_service_url}email/send`, {
+
+  const url =`${config.email_service_url}/email/send`
+  console.log("url",url);
+
+  await axios.post(`${config.email_service_url}/email/send`, {
     recipient: payload.userEmail,
     subject: "Order Confirmation",
     body: `Your order has been successfully placed. Order ID: ${order.id}`,

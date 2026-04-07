@@ -14,10 +14,9 @@ const app: Application = express();
 app.use(helmet());
 app.use(cookieParser());
 
-// CORS সেটআপ (উন্নত করা হয়েছে)
 app.use(
   cors({
-    origin: "*", // প্রোডাকশনে নির্দিষ্ট origin দিন
+    origin: "*",
     credentials: true,
   }),
 );
@@ -37,7 +36,7 @@ app.get("/", (req: Request, res: Response) => {
 
 // Rate limiter + Routes
 app.use("/api", apiLimiter);
-app.use("/gateway", router); // সব route /api দিয়ে শুরু হবে
+app.use("/gateway", router);
 
 app.use(morgan("dev"));
 

@@ -19,3 +19,5 @@ docker compose down -v
 host.docker.internal
 
 docker container rm redis-stack
+
+npx prisma migrate reset
