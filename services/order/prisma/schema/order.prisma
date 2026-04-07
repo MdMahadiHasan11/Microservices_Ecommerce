@@ -1,0 +1,44 @@
+enum OrderStatus {
+    PENDING
+    CONFIRM
+    SHIPPED
+    DELIVERED
+    CANCELLED
+}
+
+model Order {
+    id              String     @id @default(uuid())
+    userId String
+    userName String
+    userEmail String
+    subtotal Float @default(0)
+    tax Float @default(0)
+    grandTotal Float @default(0)
+
+    status OrderStatus @default(PENDING)
+     
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    orderItems OrderItem[]
+
+    @@map("order")
+}
+
+model OrderItem {
+    id          String   @id @default(uuid())
+    orderId     String
+    order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+    productId   String
+    productName String
+    sku         String
+    price       Float
+    quantity    Int
+    total       Float
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@map("orderItem")
+}
