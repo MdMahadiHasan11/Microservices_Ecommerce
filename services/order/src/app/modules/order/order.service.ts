@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import config from "../../../config";
 import prisma from "../../../shared/prisma";
 import ApiError from "../../errors/ApiError";
+import sendToQueue from "../rabit-m-q/queue";
 import { IOrder } from "./order.validation";
 
 const checkout = async (payload: IOrder) => {
@@ -70,22 +71,27 @@ const checkout = async (payload: IOrder) => {
     },
   });
 
-  await axios.get(`${config.cart_service_url}/cart/clear-to-cart`, {
-    headers: {
-      "x-cart-session-id": payload.cartSessionId,
-    },
-  });
+  // await axios.get(`${config.cart_service_url}/cart/clear-to-cart`, {
+  //   headers: {
+  //     "x-cart-session-id": payload.cartSessionId,
+  //   },
+  // });
 
+  // await axios.post(`${config.email_service_url}/email/send`, {
+  //   recipient: payload.userEmail,
+  //   subject: "Order Confirmation",
+  //   body: `Your order has been successfully placed. Order ID: ${order.id}`,
+  //   source: "Checkout",
+  // });
 
-  const url =`${config.email_service_url}/email/send`
-  console.log("url",url);
-
-  await axios.post(`${config.email_service_url}/email/send`, {
-    recipient: payload.userEmail,
-    subject: "Order Confirmation",
-    body: `Your order has been successfully placed. Order ID: ${order.id}`,
-    source: "Checkout",
-  });
+  //sent to queue
+  sendToQueue("send-email", JSON.stringify(order));
+  sendToQueue(
+    "clear-cart",
+    JSON.stringify({
+      cartSessionId: payload.cartSessionId,
+    }),
+  );
 
   return order;
 };

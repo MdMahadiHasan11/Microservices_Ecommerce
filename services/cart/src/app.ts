@@ -8,6 +8,7 @@ import { initRedisExpiredListener } from "./app/helper/onKeyExpires";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
 import { apiLimiter } from "./app/middlewares/rateLimiter";
+import "./app/modules/rabit-m-q/receiver";
 import router from "./app/routes";
 import config from "./config";
 

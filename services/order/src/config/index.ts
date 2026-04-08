@@ -10,4 +10,5 @@ export default {
   product_service_url: process.env.PRODUCT_SERVICE_URL,
   cart_service_url: process.env.CART_SERVICE_URL,
   email_service_url: process.env.EMAIL_SERVICE_URL,
+  queue_url: process.env.QUEUE_URL,
 };
