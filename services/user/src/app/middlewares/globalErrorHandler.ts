@@ -1,7 +1,6 @@
+import { Prisma } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import config from "../../config";
-import { Prisma } from "@prisma/client";
 
 const sanitizeError = (error: any) => {
   // Don't expose Prisma errors in production

@@ -1,17 +1,17 @@
 import { Server } from "http";
 import app from "./app";
-// import seedSuperAdmin from "./app/helper/seed";
 import config from "./config";
 let server: Server | undefined;
 
 const port = process.env.PORT || config.port || 5000;
 
-
 async function bootstrap() {
   try {
     console.log("🚀 Starting application...");
     server = app.listen(port, () => {
-      console.log(`✅ ${config.serviceName} running → http://localhost:${port}`);
+      console.log(
+        `✅ ${config.serviceName} running → http://localhost:${port}`,
+      );
     });
   } catch (err) {
     console.error("❌ Failed to start application:", err);

@@ -9,8 +9,6 @@ async function bootstrap() {
   try {
     console.log("🚀 Starting application...");
 
-    // এখানে কোনো ডাটাবেস বা সিডিং নেই
-
     server = app.listen(port, () => {
       console.log(
         `✅${config.service_name} Server is running on: http://localhost:${port}`,

@@ -1,25 +1,19 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
-import cron from "node-cron";
 import passport from "passport";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
-import { AppointmentService } from "./app/modules/appointment/appointment.service";
-import { PaymentController } from "./app/modules/payment/payment.controller";
+
 import router from "./app/routes";
 import config from "./config";
-import "./config/passport";
+
 const app: Application = express();
 
 app.use(passport.initialize());
 // app.use(passport.session());
 app.use(cookieParser());
-app.post(
-  "/api/v1/webhook",
-  express.raw({ type: "application/json" }),
-  PaymentController.handleStripeWebhookEvent,
-);
+
 const allowedOrigins = ["http://localhost:8001"];
 app.use(
   cors({
@@ -35,19 +29,9 @@ app.use(
   }),
 );
 // app.use(cors({ origin: '*', credentials: true }));
-//perser
-//parser
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-cron.schedule("*/5 * * * *", () => {
-  try {
-    console.log("Node cron called at ", new Date());
-    AppointmentService.cancelUnpaidAppointments();
-  } catch (err) {
-    console.error(err);
-  }
-});
 
 app.get("/", (req: Request, res: Response) => {
   res.send({
