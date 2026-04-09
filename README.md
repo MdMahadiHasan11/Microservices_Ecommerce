@@ -27,3 +27,5 @@ docker compose -f .\kong-docker-compose.yml up
 
 #konga service
 usr: http://host.docker.internal:4003(port)
+
+https://github.com/Stack-Learner/practical-microservice-workshop
