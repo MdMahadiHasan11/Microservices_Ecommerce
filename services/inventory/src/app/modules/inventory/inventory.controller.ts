@@ -5,7 +5,6 @@ import sendResponse from "../../shared/sendResponse";
 import { InventoryService } from "./inventory.service";
 
 const createInventory = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body);
   const result = await InventoryService.createInventory(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,

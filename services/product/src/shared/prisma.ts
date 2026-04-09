@@ -1,6 +1,8 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Create PostgreSQL connection pool with optimized settings
 const pool = new Pool({
