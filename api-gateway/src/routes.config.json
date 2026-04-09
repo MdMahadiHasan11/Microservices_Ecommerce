@@ -11,7 +11,7 @@
         {
           "path": "/api/v1/products",
           "methods": ["get"],
-          "middlewares": []
+          "middlewares": ["auth"]
         },
         {
           "path": "/api/v1/products/:id",

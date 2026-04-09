@@ -48,7 +48,7 @@ const auth = async (req: Request, _res: Response, next: NextFunction) => {
     const token = req.headers["authorization"]?.split(" ")[1];
 
     const response = await axios.post(
-      `${config.auth_service_url}/auth/verify-token`,
+      `${config.auth_service_url}/verify-token`,
       {
         accessToken: token,
 
